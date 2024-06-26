@@ -31,6 +31,7 @@ from service.models import Product, Category, db
 from service import app
 from tests.factories import ProductFactory
 
+
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql://postgres:postgres@localhost:5432/postgres"
 )
@@ -104,3 +105,44 @@ class TestProductModel(unittest.TestCase):
     #
     # ADD YOUR TEST CASES HERE
     #
+    def test_read_a_product(self):
+        '''Function to read a product'''
+        product = ProductFactory()
+        app.logger.info('product is : '+product.name)
+        product.id = None
+        product.create()
+        self.assertIsNotNone(product.id)
+        new_product = Product.find(product.id)
+        self.assertEqual(new_product.name, product.name)
+        self.assertEqual(new_product.description, product.description)
+        self.assertEqual(Decimal(new_product.price), product.price)
+        self.assertEqual(new_product.available, product.available)
+        self.assertEqual(new_product.category, product.category)
+
+    def test_update_a_product(self):
+        '''Function to update a product'''
+        product = ProductFactory()
+        app.logger.info('product is : '+product.name)
+        product.id = None
+        product.create()
+        app.logger.info('product is '+product.name)
+        product.description = 'this is a new description'
+        product.update()
+        self.assertEqual(product.description,'this is a new description')
+        products = Product.all()
+        first_product = products[0]
+        self.assertEqual(first_product.id,product.id)
+
+
+    def test_delete_a_product(self):
+        '''Function to delete a product'''
+        product = ProductFactory()
+        app.logger.info('product is : '+product.name)
+        product.id = None
+        product.create()
+        # Assert that it was assigned an id and shows up in the database
+        self.assertIsNotNone(product.id)
+        products = Product.all()
+        self.assertEqual(len(products), 1)
+        product.delete()
+        self.assertTrue(Product.all()==[])
