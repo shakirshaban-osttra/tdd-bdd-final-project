@@ -128,16 +128,15 @@ class TestProductModel(unittest.TestCase):
         app.logger.info('product is '+product.name)
         product.description = 'this is a new description'
         product.update()
-        self.assertEqual(product.description,'this is a new description')
+        self.assertEqual(product.description, 'this is a new description')
         products = Product.all()
         first_product = products[0]
-        self.assertEqual(first_product.id,product.id)
-
+        self.assertEqual(first_product.id, product.id)
 
     def test_delete_a_product(self):
         '''Function to delete a product'''
         product = ProductFactory()
-        app.logger.info('product is : '+product.name)
+        app.logger.info('product is : ' + product.name)
         product.id = None
         product.create()
         # Assert that it was assigned an id and shows up in the database
@@ -145,4 +144,38 @@ class TestProductModel(unittest.TestCase):
         products = Product.all()
         self.assertEqual(len(products), 1)
         product.delete()
-        self.assertTrue(Product.all()==[])
+        self.assertTrue(Product.all() == [])
+
+    def test_find_all_product(self):
+        '''Function to find all product'''
+        existing_products = Product.all()
+        self.assertEqual(existing_products, [])
+        for product in range(5):
+            product = ProductFactory()
+            app.logger.info('product is : ' + product.name)
+            product.id = None
+            product.create()
+            self.assertIsNotNone(product.id)
+        all_products = Product.all()
+        self.assertEqual(len(all_products), 5)
+
+    def test_find_a_product_by_name(self):
+        '''Function to find a product by name'''
+        first_product_name = ''
+        list_of_products = []
+        for _ in range(5):
+            product = ProductFactory()
+            app.logger.info('product is : ' + product.name)
+            product.id = None
+            product.create()
+            if _ == 0:
+                first_product_name = product.name
+            list_of_products.append(product)
+        count = 0
+        for prdcts in list_of_products:
+            if prdcts.name == first_product_name:
+                count += 1
+
+        first_product = Product.all()[0]
+        all_products_with_name = Product.find_by_name(first_product.name).all()
+        self.assertEqual(count, len(all_products_with_name))
