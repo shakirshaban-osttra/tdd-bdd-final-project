@@ -219,6 +219,10 @@ class Product(db.Model):
         if isinstance(price, str):
             price_value = Decimal(price.strip(' "'))
         return cls.query.filter(cls.price == price_value)
+        price_value = price
+        if isinstance(price, str):
+            price_value = Decimal(price.strip(' "'))
+        return cls.query.filter(cls.price == price_value)
 
     @classmethod
     def find_by_availability(cls, available: bool = True) -> list:

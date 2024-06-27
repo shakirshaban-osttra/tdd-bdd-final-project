@@ -27,7 +27,7 @@ import os
 import logging
 import unittest
 from decimal import Decimal
-from service.models import Product, Category, db
+from service.models import Product, Category, db, DataValidationError
 from service import app
 from tests.factories import ProductFactory
 
@@ -190,4 +190,59 @@ class TestProductModel(unittest.TestCase):
         found = Product.find_by_availability(products[0].available)
         self.assertEqual(found.count(), count)
         for product in found:
-            self.assertEqual(product.available,availablility)
+            self.assertEqual(product.available, availablility)
+
+    def test_find_by_category(self):
+        """It should Find a Product by Category"""
+        products = ProductFactory.create_batch(10)
+        for product in products:
+            product.create()
+        category_of_first = products[0].category
+        count = len([product for product in products if product.category == category_of_first])
+        found = Product.find_by_category(products[0].category)
+        self.assertEqual(found.count(), count)
+        for product in found:
+            self.assertEqual(product.category, category_of_first)
+
+    def test_update_with_error_handling(self):
+        '''Function to check exception handling on update of a product'''
+        product = ProductFactory()
+        app.logger.info('product is : '+product.name)
+        product.id = None
+        product.create()
+        app.logger.info('product is '+product.name)
+        product.id = None
+        product.description = 'this is a new description'
+        self.assertRaises(DataValidationError, product.update)
+
+    def test_update_with_error_handling_on_other_attributes(self):
+        '''Function to check exception handling on update of a product on other attributes'''
+        product = ProductFactory()
+        app.logger.info('product is : '+product.name)
+        data = product
+        data.id = None
+        data.available = "randome value"
+        self.assertRaises(DataValidationError, product.deserialize, data)
+
+    def test_update_with_error_handling_on_other_attributes_key_error(self):
+        '''Function to check exception handling on update of a product on other attributes KeyError'''
+        product = ProductFactory()
+        app.logger.info('product is : '+product.name)
+        data = product
+        data.id = None
+        data.notKey = "random"
+        self.assertRaises(DataValidationError, product.deserialize, data)
+
+    def test_find_by_price(self):
+        """It should Find a Product by price"""
+        products = ProductFactory.create_batch(10)
+        for product in products:
+            product.create()
+        price = products[0].price
+        count = len([product for product in products if product.price == price])
+        found = Product.find_by_price(price)
+        self.assertEqual(found.count(), count)
+        for product in found:
+            self.assertEqual(product.price, price)
+        str_found = Product.find_by_price(str(price))
+        self.assertTrue(str_found)
