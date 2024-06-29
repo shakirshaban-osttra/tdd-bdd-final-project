@@ -22,31 +22,36 @@ from flask import jsonify, request, abort
 from flask import url_for  # noqa: F401 pylint: disable=unused-import
 from service.models import Product
 from service.common import status  # HTTP Status Codes
-from . import app
 from service.models import Category
+from . import app
 ######################################################################
 # H E A L T H   C H E C K
 ######################################################################
+
+
 @app.route("/health")
 def healthcheck():
     """Let them know our heart is still beating"""
     return jsonify(status=200, message="OK"), status.HTTP_200_OK
 
-
 ######################################################################
 # H O M E   P A G E
 ######################################################################
+
+
 @app.route("/")
 def index():
     """Base URL for our service"""
     return app.send_static_file("index.html")
 
-
 ######################################################################
 #  U T I L I T Y   F U N C T I O N S
 ######################################################################
+
+
 def check_content_type(content_type):
     """Checks that the media type is correct"""
+
     if "Content-Type" not in request.headers:
         app.logger.error("No Content-Type specified.")
         abort(
@@ -103,7 +108,7 @@ def create_products():
 
 ######################################################################
 # R E A D   A   P R O D U C T
-@app.route("/products/<int:product_id>", methods = ['GET'])
+@app.route("/products/<int:product_id>", methods=['GET'])
 def get_products(product_id):
     """
     Read a Product
@@ -111,11 +116,11 @@ def get_products(product_id):
     """
     app.logger.info("Request to Retrieve a product with id [%s]", product_id)
     found = Product.find(product_id)
-    if found == None:
+    if found is None:
         app.logger.error("No Such Product Found")
         abort(
             status.HTTP_404_NOT_FOUND,
-            f"No Such Products exists",
+            "No Such Products exists",
         )
     else:
         app.logger.info('Product Found %s', found.name)
@@ -138,6 +143,8 @@ def get_products(product_id):
 
 ######################################################################
 # U P D A T E   A   P R O D U C T
+
+
 @app.route("/products/<int:product_id>", methods=["PUT"])
 def update_products(product_id):
     """
@@ -155,20 +162,11 @@ def update_products(product_id):
     return product.serialize(), status.HTTP_200_OK
 ######################################################################
 
-#
-# PLACE YOUR CODE TO UPDATE A PRODUCT HERE
-#
 
-######################################################################
-# D E L E T E   A   P R O D U C T
-######################################################################
-# DELETE A PRODUCT
-######################################################################
 @app.route("/products/<int:product_id>", methods=["DELETE"])
 def delete_products(product_id):
     """
     Delete a Product
-
     This endpoint will delete a Product based the id specified in the path
     """
     app.logger.info("Request to Delete a product with id [%s]", product_id)
@@ -186,17 +184,18 @@ def delete_products(product_id):
 ######################################################################
 # LIST PRODUCTS
 ######################################################################
+
+
 @app.route("/products", methods=["GET"])
 def list_products():
     """Returns a list of Products"""
     app.logger.info("Request to list Products...")
-
     products = []
     name = request.args.get("name")
     category = request.args.get("category")
-    availability = request.args.get("availabl
+    available = request.args.get("available")
 
-    =!Nnamei
+    if name:
         app .logger.info("Find by name: %s", name)
         products = Product.find_by_name(name)
     elif category:
@@ -205,14 +204,13 @@ def list_products():
         category_value = getattr(Category, category.upper())
         products = Product.find_by_category(category_value)
     elif available:
-        aavailable.info("Find by available: %s", available)
+        app.logger.info("Find by available: %s", available)
         # create bool from string
-availableavailability        available_value = available.lower() in ["true", "yes", "1"]
-        products = Productavailableavailability(available_value)
+        available_value = available.lower() in ["true", "yes", "1"]
+        products = Product.find_by_availability(available_value)
     else:
         app.logger.info("Find all")
         products = Product.all()
-
     results = [product.serialize() for product in products]
     app.logger.info("[%s] Products returned", len(results))
     return results, status.HTTP_200_OK
