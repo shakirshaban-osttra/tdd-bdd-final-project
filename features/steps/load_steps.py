@@ -50,3 +50,7 @@ def step_impl(context):
         #
         # ADD YOUR CODE HERE TO CREATE PRODUCTS VIA THE REST API
         #
+        payload = {'name':row['name'], 'description':row['description'], 'price':row['price'], 'availability':row['availability'], 'category':row['category']}
+        response = request.post(rest_endpoint, json=payload)
+        assert(response.status_code == status.HTTP_201_CREATED)
+
